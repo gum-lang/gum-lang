@@ -1,0 +1,84 @@
+;; gum is
+;; useful
+;; markup
+;;
+;; Reference:
+;; https://github.com/toml-lang/toml/blob/main/toml.abnf
+;; https://json5.dev/spec/grammar
+;; https://en.wikipedia.org/wiki/Augmented_Backus%E2%80%93Naur_form
+
+document  = *( content / non-assignment )
+content   = assignment *( separator assignment ) [ separator ]
+separator = *( ws / comment ) ( comma / newline ) *( ws / newline / comment )
+
+;; Comments & Whitespace
+ws             = *( %x20 / %x09 ) ; Space or Tab
+newline        = %x0A / (%x0D %x0A) ; LF or CRLF
+comment        = "#" non-newline *non-newline
+non-newline    = %x00-09 / %x0B-0C / %x0E-10FFFF
+comma          = ","
+
+;; Assignments & Keys
+assignment     = key ws "=" ws value
+non-assignment = (ws / newline / comment) *( ws / newline / comment )
+
+key            = dotted-key / single-key
+dotted-key     = single-key *( ws "." ws single-key )
+single-key     = bare-key / quoted-string
+bare-key       = ( ALPHA / "_" ) *( ALPHA / DIGIT / "_" )
+;; NOTE: Parser must enforce bare-key != "true" | "false" | "null"
+
+;; Values
+value          = string / number / boolean / null / table / list
+
+boolean        = %x74.72.75.65 / %x66.61.6c.73.65 ; true / false
+null           = %x6e.75.6c.6c ; null
+
+;; Numbers
+number         = [ sign ] ( float / integer )
+sign           = "+" / "-"
+integer        = 1*DIGIT
+float          = *DIGIT "." 1*DIGIT [ exp ] / 1*DIGIT exp
+exp            = ( "e" / "E" ) [ sign ] int
+
+;; Strings
+string           = quoted-string / multiline-string / literal-string / multiline-literal-string
+
+quoted-string    = QUOTATION-MARK *qs-char QUOTATION-MARK
+qs-char          = unescaped / escape-sequence
+
+unescaped        = %x20-21 / %x23-5B / %x5D-7E / %x80-10FFFF
+escape-sequence  = "\" ( %x22 / %x5C / %x62 / %x66 / %x6E / %x72 / %x74 / unicode-sequence )
+unicode-sequence = ( "u" / "U" ) ( 4HEXDIG / 8HEXDIG)
+
+multiline-quoted-string = %x22.22.22 mlqs-content %x22.22.22
+;; NOTE: Multiline strings must also remove common leading whitespace
+;; from every line in text.
+;; Specifically, they implement the Python textwrap.dedent() algorithm.
+;; These rules aim to replicate Nix's markup:
+;; https://nix.dev/manual/nix/2.24/language/syntax#string-literal
+mlqs-content      = *( mlqs-char / escape-sequence / line-continuation )
+mlqs-char         = unescaped / newline / ws / QUOTATION-MARK
+line-continuation = "\" newline ws
+
+literal-string    = APOSTRAPHE *ls-char APOSTRAPHE
+ls-char           = %x20-26 / %x28-7E / %x80-10FFFF ; all except APOSTRAPHE
+
+multiline-literal-string = %x27.27.27 mlls-content %x27.27.27
+mlls-content      = *( mlls-char / line-continuation )
+mlls-char         = ls-char / newline / ws / APOSTRAPHE
+
+;; Tables
+table      = "{" table-body "}"
+table-body = *( ws / newline / comment ) [ assignment *( separator assignment ) ] [ separator ]
+;; Lists
+list       = "[" list-body "]"
+list-body  = *( ws / newline / comment ) [ value *( separator value ) ] [ separator ]
+
+;; ABNF Primitives
+ALPHA          = %x41-5A / %x61-7A
+DIGIT          = %x30-39
+HEXDIG         = DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
+                       / "a" / "b" / "c" / "d" / "e" / "f"
+QUOTATION-MARK = %x22
+APOSTRAPHE     = %x27
