@@ -43,14 +43,14 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           mkdir -p dist
-          cp target/${{ matrix.target }}/release/gum-cli dist/
+          cp target/${{ matrix.target }}/release/gum dist/
           cp target/${{ matrix.target }}/release/gum-lsp dist/
           tar -czf gum-${{ github.ref_name }}-${{ matrix.target }}.tar.gz -C dist .
       - name: Package (Windows)
         if: runner.os == 'Windows'
         run: |
           mkdir dist
-          cp target/${{ matrix.target }}/release/gum-cli.exe dist/
+          cp target/${{ matrix.target }}/release/gum.exe dist/
           cp target/${{ matrix.target }}/release/gum-lsp.exe dist/
           7z a gum-${{ github.ref_name }}-${{ matrix.target }}.zip dist/*
       - name: Upload artifact
