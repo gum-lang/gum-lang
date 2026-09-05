@@ -1,0 +1,117 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Rust (core, cli, lsp) ───────────────────────────────────────
+  rust:
+    name: Rust — ${{ matrix.crate }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        crate: [core, cli, lsp]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ${{ matrix.crate }}
+      - name: Build
+        run: cargo build --manifest-path ${{ matrix.crate }}/Cargo.toml
+      - name: Test
+        run: cargo test --manifest-path ${{ matrix.crate }}/Cargo.toml
+      - name: Clippy
+        run: cargo clippy --all-targets --all-features --manifest-path ${{ matrix.crate }}/Cargo.toml -- -D warnings
+      - name: Format check
+        run: cargo fmt --manifest-path ${{ matrix.crate }}/Cargo.toml -- --check
+
+  # ── TypeScript parser ──────────────────────────────────────────
+  parser-ts:
+    name: Parser — TypeScript
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: parser-ts
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: parser-ts/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  # ── Python parser ──────────────────────────────────────────────
+  parser-python:
+    name: Parser — Python
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: parser-python
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+      - name: Test
+        run: pytest
+      - name: Lint
+        run: |
+          black --check .
+          ruff check .
+
+  # ── Go parser ──────────────────────────────────────────────────
+  parser-go:
+    name: Parser — Go
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: parser-go
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Build
+        run: go build ./...
+      - name: Test
+        run: go test ./...
+      - name: Vet
+        run: go vet ./...
+
+  # ── Integration tests ─────────────────────────────────────────
+  integration:
+    name: Integration Tests
+    needs: [rust, parser-ts, parser-python, parser-go]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: core
+      - name: Run integration tests
+        run: cargo test --manifest-path core/Cargo.toml --test integration

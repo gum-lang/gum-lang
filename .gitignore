@@ -1,0 +1,17 @@
+# Nix
+result
+.direnv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Local bare repos (submodule remotes — not tracked in workspace)
+_remotes/

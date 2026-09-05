@@ -1,0 +1,30 @@
+[submodule "core"]
+	path = core
+	url = ./core
+[submodule "cli"]
+	path = cli
+	url = ./cli
+[submodule "lsp"]
+	path = lsp
+	url = ./lsp
+[submodule "parser-ts"]
+	path = parser-ts
+	url = ./parser-ts
+[submodule "parser-python"]
+	path = parser-python
+	url = ./parser-python
+[submodule "parser-go"]
+	path = parser-go
+	url = ./parser-go
+[submodule "parser-rust"]
+	path = parser-rust
+	url = ./parser-rust
+[submodule "tree-sitter-lang"]
+	path = tree-sitter-lang
+	url = ./tree-sitter-lang
+[submodule "vscode-extension"]
+	path = vscode-extension
+	url = ./vscode-extension
+[submodule "website"]
+	path = website
+	url = ./website
