@@ -1,30 +1,30 @@
 [submodule "core"]
 	path = core
-	url = ./core
+	url = https://github.com/gum-lang/core.git
 [submodule "cli"]
 	path = cli
-	url = ./cli
+	url = https://github.com/gum-lang/cli.git
 [submodule "lsp"]
 	path = lsp
-	url = ./lsp
+	url = https://github.com/gum-lang/lsp.git
 [submodule "parser-ts"]
 	path = parser-ts
-	url = ./parser-ts
+	url = https://github.com/gum-lang/parser-ts.git
 [submodule "parser-python"]
 	path = parser-python
-	url = ./parser-python
+	url = https://github.com/gum-lang/parser-python.git
 [submodule "parser-go"]
 	path = parser-go
-	url = ./parser-go
+	url = https://github.com/gum-lang/parser-go.git
 [submodule "parser-rust"]
 	path = parser-rust
-	url = ./parser-rust
+	url = https://github.com/gum-lang/parser-rust.git
 [submodule "tree-sitter-lang"]
 	path = tree-sitter-lang
-	url = ./tree-sitter-lang
+	url = https://github.com/gum-lang/tree-sitter-lang.git
 [submodule "vscode-extension"]
 	path = vscode-extension
-	url = ./vscode-extension
+	url = https://github.com/gum-lang/vscode-extension.git
 [submodule "website"]
 	path = website
-	url = ./website
+	url = https://github.com/gum-lang/website.git
