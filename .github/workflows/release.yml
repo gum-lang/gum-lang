@@ -39,12 +39,15 @@ jobs:
         run: cargo build --release --target ${{ matrix.target }} --manifest-path cli/Cargo.toml
       - name: Build LSP
         run: cargo build --release --target ${{ matrix.target }} --manifest-path lsp/Cargo.toml
+      - name: Build gum-nix
+        run: cargo build --release --target ${{ matrix.target }} --manifest-path nix-generator/Cargo.toml
       - name: Package (Unix)
         if: runner.os != 'Windows'
         run: |
           mkdir -p dist
           cp target/${{ matrix.target }}/release/gum dist/
           cp target/${{ matrix.target }}/release/gum-lsp dist/
+          cp target/${{ matrix.target }}/release/gum-nix dist/
           tar -czf gum-${{ github.ref_name }}-${{ matrix.target }}.tar.gz -C dist .
       - name: Package (Windows)
         if: runner.os == 'Windows'
@@ -52,6 +55,7 @@ jobs:
           mkdir dist
           cp target/${{ matrix.target }}/release/gum.exe dist/
           cp target/${{ matrix.target }}/release/gum-lsp.exe dist/
+          cp target/${{ matrix.target }}/release/gum-nix.exe dist/
           7z a gum-${{ github.ref_name }}-${{ matrix.target }}.zip dist/*
       - name: Upload artifact
         uses: actions/upload-artifact@v4

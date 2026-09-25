@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        crate: [core, cli, lsp]
+        crate: [core, cli, lsp, nix-generator]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -115,3 +115,24 @@ jobs:
           workspaces: core
       - name: Run integration tests
         run: cargo test --manifest-path core/Cargo.toml --test integration
+
+  # ── Nix flake build ────────────────────────────────────────────
+  nix-flake:
+    name: Nix Flake — build + test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: DeterminateSystems/nix-installer-action@main
+      - name: Build gum-nix
+        run: nix build .#gum-nix
+      - name: Test gum-nix
+        run: |
+          RESULT=$(nix build --print-out-paths .#gum-nix)
+          $RESULT/bin/gum-nix --help
+      - name: Check generated.nix syntax
+        run: |
+          cd nix-generator/example
+          $(nix build --print-out-paths .#gum-nix)/bin/gum-nix build -c packages.gum -o _sources
+          nix-instantiate --parse _sources/generated.nix
