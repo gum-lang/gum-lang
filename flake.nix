@@ -10,8 +10,21 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
+
+        gum-nix = pkgs.rustPlatform.buildRustPackage {
+          pname = "gum-nix";
+          version = "0.1.0";
+          src = ./nix-generator;
+          cargoLock.lockFile = ./nix-generator/Cargo.lock;
+        };
       in
       {
+        packages.gum-nix = gum-nix;
+        apps.gum-nix = {
+          type = "app";
+          program = "${gum-nix}/bin/gum-nix";
+        };
+
         devShells.default = pkgs.mkShell {
           name = "gum-lang";
 
@@ -42,6 +55,9 @@
 
             # Tree-sitter CLI (tree-sitter-lang grammar development)
             tree-sitter
+
+            # Nix prefetch tools (for gum-nix development)
+            nix-prefetch-git
           ];
 
           shellHook = ''

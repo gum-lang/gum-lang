@@ -1,0 +1,21 @@
+# Example packages.gum configuration
+
+# A package with a fixed version
+hello = {
+    src.manual = "2.12.1"
+    fetch.url = "https://ftp.gnu.org/gnu/hello/hello-$ver.tar.gz"
+}
+
+# A package from GitHub with cargo lock extraction
+# rustdesk = {
+#     src.github = "rustdesk/rustdesk"
+#     fetch.github = "rustdesk/rustdesk"
+#     cargo_lock = ["Cargo.lock"]
+# }
+
+# A package tracking a git branch
+# mylib = {
+#     src.git = "https://git.example.com/repo.git"
+#     fetch.git = "https://git.example.com/repo.git"
+#     git.branch = "main"
+# }

@@ -18,7 +18,7 @@ clone-all:
 # ── Testing ──────────────────────────────────────────────────────────
 
 # Run tests across all parser implementations and tooling
-test-all: test-core test-cli test-lsp test-parser-ts test-parser-python test-parser-go
+test-all: test-core test-cli test-lsp test-nix-generator test-parser-ts test-parser-python test-parser-go
 
 test-core:
     cargo test --manifest-path core/Cargo.toml
@@ -28,6 +28,9 @@ test-cli:
 
 test-lsp:
     cargo test --manifest-path lsp/Cargo.toml
+
+test-nix-generator:
+    cargo test --manifest-path nix-generator/Cargo.toml
 
 test-parser-ts:
     npm test --prefix parser-ts
@@ -47,6 +50,7 @@ build-tools:
     cargo build --release --manifest-path core/Cargo.toml
     cargo build --release --manifest-path cli/Cargo.toml
     cargo build --release --manifest-path lsp/Cargo.toml
+    cargo build --release --manifest-path nix-generator/Cargo.toml
 
 # Build all parser packages
 build-parsers: build-parsers-ts build-parsers-python build-parsers-go
@@ -71,6 +75,7 @@ format-all:
     cargo fmt --manifest-path core/Cargo.toml
     cargo fmt --manifest-path cli/Cargo.toml
     cargo fmt --manifest-path lsp/Cargo.toml
+    cargo fmt --manifest-path nix-generator/Cargo.toml
     npm run format --prefix parser-ts
     #!/usr/bin/env bash
     set -euo pipefail
@@ -84,6 +89,7 @@ lint-all:
     cargo clippy --all-targets --all-features --manifest-path core/Cargo.toml -- -D warnings
     cargo clippy --all-targets --all-features --manifest-path cli/Cargo.toml -- -D warnings
     cargo clippy --all-targets --all-features --manifest-path lsp/Cargo.toml -- -D warnings
+    cargo clippy --all-targets --all-features --manifest-path nix-generator/Cargo.toml -- -D warnings
     npm run lint --prefix parser-ts
     #!/usr/bin/env bash
     set -euo pipefail
