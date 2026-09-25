@@ -1,0 +1,40 @@
+name: Publish — VSCode Extension
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  publish-vscode:
+    name: VSCode Extension
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vscode-extension
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - run: npm ci
+      - name: Sync version from tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          npm version "$VERSION" --no-git-tag-version
+      - run: npm run compile
+      - name: Package extension
+        run: npx @vscode/vsce package --no-dependencies
+      - name: Publish to VSCode Marketplace
+        run: npx @vscode/vsce publish --no-dependencies --pat "$VSCE_TOKEN"
+        env:
+          VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
+      - name: Publish to OpenVSX
+        run: npx ovsx publish --pat "$OPENVSX_TOKEN"
+        env:
+          OPENVSX_TOKEN: ${{ secrets.OPENVSX_TOKEN }}

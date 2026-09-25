@@ -1,0 +1,89 @@
+name: Publish — npm + JSR
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  # ── @gum-lang/parser → npm + JSR ───────────────────────────────
+  publish-parser-npm:
+    name: npm — @gum-lang/parser
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: parser-ts
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          registry-url: "https://registry.npmjs.org"
+      - run: npm ci
+      - run: npm run build
+      - name: Sync version from tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          npm version "$VERSION" --no-git-tag-version
+      - run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-parser-jsr:
+    name: JSR — @gum-lang/parser
+    runs-on: ubuntu-latest
+    needs: publish-parser-npm
+    defaults:
+      run:
+        working-directory: parser-ts
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - run: npm ci
+      - run: npm run build
+      - name: Sync version from tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          npm version "$VERSION" --no-git-tag-version
+          sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" jsr.json
+      - name: Publish to JSR
+        run: npx jsr publish
+        env:
+          JSR_TOKEN: ${{ secrets.JSR_TOKEN }}
+
+  # ── tree-sitter-gum → npm ──────────────────────────────────────
+  publish-tree-sitter:
+    name: npm — tree-sitter-gum
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tree-sitter-lang
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          registry-url: "https://registry.npmjs.org"
+      - run: npm ci
+      - name: Install tree-sitter CLI
+        run: npm install -g tree-sitter-cli
+      - run: tree-sitter generate
+      - name: Sync version from tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          npm version "$VERSION" --no-git-tag-version
+      - run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

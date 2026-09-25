@@ -1,0 +1,43 @@
+name: Publish — crates.io
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  publish-crates:
+    name: Publish to crates.io
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Sync versions from tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          for crate in core cli lsp nix-generator; do
+            sed -i "s/^version = \".*\"/version = \"$VERSION\"/" "$crate/Cargo.toml"
+          done
+      - name: Publish gum-core
+        run: cargo publish --manifest-path core/Cargo.toml --token "$CARGO_REGISTRY_TOKEN"
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      - name: Wait for core to propagate
+        run: sleep 30
+      - name: Publish gum-cli
+        run: cargo publish --manifest-path cli/Cargo.toml --token "$CARGO_REGISTRY_TOKEN"
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      - name: Publish gum-lsp
+        run: cargo publish --manifest-path lsp/Cargo.toml --token "$CARGO_REGISTRY_TOKEN"
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      - name: Publish gum-nix
+        run: cargo publish --manifest-path nix-generator/Cargo.toml --token "$CARGO_REGISTRY_TOKEN"
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}

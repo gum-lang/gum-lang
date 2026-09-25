@@ -32,6 +32,12 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
+      - name: Sync versions from tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          for crate in core cli lsp nix-generator; do
+            sed -i "s/^version = \".*\"/version = \"$VERSION\"/" "$crate/Cargo.toml"
+          done
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: cli
