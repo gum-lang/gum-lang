@@ -34,6 +34,8 @@
             python312Packages.pip
             python312Packages.black
             python312Packages.ruff
+            python312Packages.pytest
+            maturin
 
             # Go (parser-go)
             go

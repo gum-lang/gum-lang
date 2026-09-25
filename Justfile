@@ -102,3 +102,13 @@ build-wasm:
     #!/usr/bin/env bash
     set -euo pipefail
     cd core && wasm-pack build --target web --out-dir ../website/public/pkg
+
+# ── Website ──────────────────────────────────────────────────────────
+
+# Build the documentation website
+build-website:
+    npm run build --prefix website
+
+# Start the website dev server
+serve-website:
+    npm run dev --prefix website
