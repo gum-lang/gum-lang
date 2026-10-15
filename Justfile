@@ -9,10 +9,94 @@
 default:
     @just --list
 
-# ── Submodule Management ─────────────────────────────────────────────
+# ── Git Operations ───────────────────────────────────────────────────
 
 # Clone or update all sub-repositories
 clone-all:
+    git submodule update --init --recursive
+
+# Show git status for the main repo and all submodules
+status-all:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "=== gum-lang (main) ==="
+    git status --short
+    for dir in core cli lsp parser-ts parser-python parser-go parser-rust tree-sitter-lang vscode-extension website; do
+        echo
+        echo "=== $dir ==="
+        git -C "$dir" status --short 2>/dev/null || echo "  (not initialized)"
+    done
+
+# Fetch all remotes for main repo and submodules
+fetch-all:
+    git fetch --all
+    git submodule foreach 'git fetch --all 2>/dev/null || true'
+
+# Pull main repo and update all submodules to their tracked branches
+pull-all:
+    git pull
+    git submodule update --remote --recursive
+
+# Push main repo and all submodules (each to its own remote)
+push-all:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    for dir in core cli lsp parser-ts parser-python parser-go parser-rust tree-sitter-lang vscode-extension website; do
+        if [ -d "$dir/.git" ] || [ -f "$dir/.git" ]; then
+            branch=$(git -C "$dir" rev-parse --abbrev-ref HEAD 2>/dev/null)
+            if [ -n "$branch" ] && [ "$branch" != "HEAD" ]; then
+                echo "Pushing $dir ($branch)..."
+                git -C "$dir" push origin "$branch" 2>/dev/null || echo "  (skipped: no remote or up to date)"
+            fi
+        fi
+    done
+    echo "Pushing gum-lang (main)..."
+    git push
+
+# Create or switch to a branch across all repos
+branch-all name:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "Switching gum-lang (main) to '{{name}}'..."
+    git checkout -b "{{name}}" 2>/dev/null || git checkout "{{name}}"
+    for dir in core cli lsp parser-ts parser-python parser-go parser-rust tree-sitter-lang vscode-extension website; do
+        echo "Switching $dir to '{{name}}'..."
+        git -C "$dir" checkout -b "{{name}}" 2>/dev/null || git -C "$dir" checkout "{{name}}" 2>/dev/null || echo "  (skipped)"
+    done
+
+# Show recent commits across all repos
+log-all:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "=== gum-lang (main) ==="
+    git log --oneline -5
+    for dir in core cli lsp parser-ts parser-python parser-go parser-rust tree-sitter-lang vscode-extension website; do
+        echo
+        echo "=== $dir ==="
+        git -C "$dir" log --oneline -5 2>/dev/null || echo "  (no commits)"
+    done
+
+# Stash changes across all repos
+stash-all:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    git stash
+    for dir in core cli lsp parser-ts parser-python parser-go parser-rust tree-sitter-lang vscode-extension website; do
+        git -C "$dir" stash 2>/dev/null || true
+    done
+
+# Pop stashed changes across all repos
+stash-pop-all:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    git stash pop 2>/dev/null || true
+    for dir in core cli lsp parser-ts parser-python parser-go parser-rust tree-sitter-lang vscode-extension website; do
+        git -C "$dir" stash pop 2>/dev/null || true
+    done
+
+# Sync submodule URLs with .gitmodules (useful after remote changes)
+sync-submodules:
+    git submodule sync --recursive
     git submodule update --init --recursive
 
 # ── Testing ──────────────────────────────────────────────────────────

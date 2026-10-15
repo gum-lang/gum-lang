@@ -38,6 +38,7 @@
             rustfmt
             clippy
             wasm-pack
+            lld
 
             # Node.js (TypeScript parser, VSCode extension, website)
             nodejs_22
